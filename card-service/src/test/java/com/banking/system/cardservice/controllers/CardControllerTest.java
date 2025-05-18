@@ -3,7 +3,9 @@ package com.banking.system.cardservice.controllers;
 import com.banking.system.cardservice.dtos.CardDto;
 import com.banking.system.cardservice.dtos.UpdateCardDto;
 import com.banking.system.cardservice.enums.CardType;
+import com.banking.system.cardservice.models.Card;
 import com.banking.system.cardservice.services.CardService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -29,78 +32,69 @@ class CardControllerTest {
     @InjectMocks
     private CardController cardController;
 
+    private CardDto createCardDto;
+    private CardDto fetchCardDto;
+    int page = 0;
+    int size = 10;
+
+    @BeforeEach
+    void setUp() {
+        createCardDto = new CardDto();
+            createCardDto.setAccountId(1L);
+            createCardDto.setPan("4646557784849383");
+            createCardDto.setCvv("123");
+            createCardDto.setTypeOfCard(CardType.PHYSICAL);
+
+        fetchCardDto = new CardDto();
+            fetchCardDto.setAccountId(1L);
+            fetchCardDto.setPan("4646557784849383");
+            fetchCardDto.setCvv("123");
+            fetchCardDto.setTypeOfCard(CardType.PHYSICAL);
+    }
+
     @Test
-    void saveCard_ValidInput_ShouldReturnCreated() {
-        // Arrange
-        CardDto inputDto = new CardDto();
-        inputDto.setPan("4111111111111111");
-        inputDto.setCvv("123");
-        inputDto.setTypeOfCard(CardType.PHYSICAL);
-
-        CardDto savedDto = new CardDto();
-        savedDto.setCardId(1L);
-        savedDto.setPan("4111111111111111");
-        savedDto.setTypeOfCard(CardType.PHYSICAL);
-
-        when(cardService.saveCard(inputDto)).thenReturn(savedDto);
+    void saveCard_ValidInput() {
+               when(cardService.saveCard(createCardDto)).thenReturn(fetchCardDto);
 
         // Act
-        ResponseEntity<CardDto> response = cardController.save(inputDto);
+        ResponseEntity<CardDto> response = cardController.save(createCardDto);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(savedDto, response.getBody());
-        verify(cardService).saveCard(inputDto);
+        assertEquals(fetchCardDto, response.getBody());
+        verify(cardService).saveCard(createCardDto);
     }
 
     @Test
-    void findAllCards_NoFilters_ShouldReturnPageOfCards() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-
-        CardDto cardDto = new CardDto();
-        cardDto.setCardId(1L);
-        cardDto.setTypeOfCard(CardType.VIRTUAL);
-
-        Page<CardDto> expectedPage = new PageImpl<>(List.of(cardDto));
+    void findAllCards_NoFilters() {
+        Page<CardDto> expectedPage = new PageImpl<>(List.of(fetchCardDto));
         when(cardService.getAllCards(page, size, null, null, null, null, false))
                 .thenReturn(expectedPage);
 
-        // Act
         ResponseEntity<Page<CardDto>> response = cardController.findAll(page, size, null, null, null, null, false);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalElements());
-        assertEquals(cardDto, response.getBody().getContent().get(0));
+        assertEquals(1, Objects.requireNonNull(response.getBody()).getTotalElements());
+        assertEquals(fetchCardDto, response.getBody().getContent().get(0));
     }
 
     @Test
-    void findAllCards_WithFilters_ShouldReturnFilteredCards() {
-        // Arrange
-        int page = 0;
-        int size = 10;
+    void findAllCards_WithFilters() {
         Long accountId = 1L;
         String cardAlias = "My Card";
-        String pan = "4111";
+        String pan = "4646";
         CardType cardType = CardType.PHYSICAL;
         boolean showSensitiveData = true;
 
-        CardDto cardDto = new CardDto();
-        cardDto.setCardId(1L);
-        cardDto.setTypeOfCard(cardType);
-        cardDto.setCardAlias(cardAlias);
+        fetchCardDto.setCardAlias(cardAlias);
 
-        Page<CardDto> expectedPage = new PageImpl<>(List.of(cardDto));
+        Page<CardDto> expectedPage = new PageImpl<>(List.of(fetchCardDto));
         when(cardService.getAllCards(page, size, accountId, cardAlias, pan, cardType, showSensitiveData))
                 .thenReturn(expectedPage);
 
-        // Act
         ResponseEntity<Page<CardDto>> response = cardController.findAll(
                 page, size, accountId, cardAlias, pan, cardType, showSensitiveData);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalElements());
         assertEquals(cardType, response.getBody().getContent().get(0).getTypeOfCard());
@@ -108,80 +102,61 @@ class CardControllerTest {
     }
 
     @Test
-    void getCardById_ExistingId_ShouldReturnCard() {
-        // Arrange
+    void getCardById_ExistingId() {
         Long cardId = 1L;
         boolean showSensitiveData = true;
 
-        CardDto expectedDto = new CardDto();
-        expectedDto.setCardId(cardId);
-        expectedDto.setPan("4111111111111111");
+        when(cardService.getCardById(cardId, showSensitiveData)).thenReturn(fetchCardDto);
 
-        when(cardService.getCardById(cardId, showSensitiveData)).thenReturn(expectedDto);
-
-        // Act
         ResponseEntity<CardDto> response = cardController.getCardById(cardId, showSensitiveData);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedDto, response.getBody());
+        assertEquals(fetchCardDto, response.getBody());
         verify(cardService).getCardById(cardId, showSensitiveData);
     }
 
     @Test
-    void updateCard_ValidInput_ShouldReturnUpdatedCard() {
-        // Arrange
+    void updateCard_ValidInput() {
         Long cardId = 1L;
         UpdateCardDto updateDto = new UpdateCardDto();
-        updateDto.setCardAlias("Updated Alias");
+        updateDto.setCardAlias("Learning card");
 
         CardDto updatedDto = new CardDto();
         updatedDto.setCardId(cardId);
-        updatedDto.setCardAlias("Updated Alias");
+        updatedDto.setCardAlias("Learning card");
 
         when(cardService.updateCardDetails(cardId, updateDto)).thenReturn(updatedDto);
 
-        // Act
         ResponseEntity<CardDto> response = cardController.update(updateDto, cardId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updatedDto, response.getBody());
-        assertEquals("Updated Alias", response.getBody().getCardAlias());
+        assertEquals("Learning card", response.getBody().getCardAlias());
         verify(cardService).updateCardDetails(cardId, updateDto);
     }
 
     @Test
-    void deleteCard_ExistingId_ShouldReturnSuccessMessage() {
-        // Arrange
+    void deleteCard_ExistingId() {
         Long cardId = 1L;
         String successMessage = "Card deleted successfully";
 
         when(cardService.deleteCard(cardId)).thenReturn(successMessage);
 
-        // Act
         ResponseEntity<String> response = cardController.delete(cardId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(successMessage, response.getBody());
         verify(cardService).deleteCard(cardId);
     }
 
     @Test
-    void findAllCards_EmptyResult_ShouldReturnEmptyPage() {
-        // Arrange
-        int page = 0;
-        int size = 10;
-
+    void findAllCards_EmptyResult() {
         Page<CardDto> expectedPage = new PageImpl<>(Collections.emptyList());
         when(cardService.getAllCards(page, size, null, null, null, null, false))
                 .thenReturn(expectedPage);
 
-        // Act
         ResponseEntity<Page<CardDto>> response = cardController.findAll(page, size, null, null, null, null, false);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isEmpty());
     }

@@ -8,6 +8,7 @@ import com.banking.system.accountservice.feign.CardServiceFeign;
 import com.banking.system.accountservice.feign.CustomerServiceFeign;
 import com.banking.system.accountservice.models.Account;
 import com.banking.system.accountservice.repositories.AccountRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,183 +47,152 @@ class AccountServiceImplTest {
     @InjectMocks
     private AccountServiceImpl accountService;
 
+    private Account account;
+    private AccountDto createAccountDto;
+    private AccountDto fetchAccountDto;
+    int page = 0;
+    int size = 10;
+
+    @BeforeEach
+    void setUp() {
+        createAccountDto = new AccountDto();
+            createAccountDto.setIban("3434343234323345");
+            createAccountDto.setBicSwift("FDEGHE");
+            createAccountDto.setCustomerId(1L);
+
+        fetchAccountDto = new AccountDto();
+            fetchAccountDto.setAccountId(1L);
+            fetchAccountDto.setIban("3434343234323345");
+
+        account = new Account();
+            account.setAccountId(1L);
+            account.setIban("3434343234323345");
+            account.setBicSwift("FDEGHE");
+            account.setCustomerId(1L);
+    }
+
     @Test
-    void saveAccount_ValidInput_ShouldReturnAccountDto() {
-        // Arrange
-        AccountDto inputDto = new AccountDto();
-        inputDto.setCustomerId(1L);
-        inputDto.setIban("DE89370400440532013000");
-        inputDto.setBicSwift("DEUTDEFF");
-
-        Account savedAccount = new Account();
-        savedAccount.setAccountId(1L);
-        savedAccount.setIban("DE89370400440532013000");
-
+    void saveAccount_ValidInput() {
         when(customerServiceFeign.getCustomerById(1L)).thenReturn(new CustomerDto());
         when(accountRepository.existsByIban(anyString())).thenReturn(false);
-        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
-//        when(messageSource.getMessage(anyString(), any(), any())).thenReturn("Error message");
+        when(accountRepository.save(any(Account.class))).thenReturn(account);
 
-        // Act
-        AccountDto result = accountService.saveAccount(inputDto);
+        AccountDto result = accountService.saveAccount(createAccountDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1L, result.getAccountId());
-        assertEquals("DE89370400440532013000", result.getIban());
+        assertEquals("3434343234323345", result.getIban());
         verify(accountRepository).save(any(Account.class));
     }
 
     @Test
-    void saveAccount_MissingIban_ShouldThrowException() {
-        // Arrange
-        AccountDto inputDto = new AccountDto();
-        inputDto.setCustomerId(1L);
-        inputDto.setBicSwift("DEUTDEFF");
+    void saveAccount_MissingIban() {
+        createAccountDto.setCustomerId(1L);
+        createAccountDto.setIban("");
 
         when(messageSource.getMessage(eq("missing.iban.number"), isNull(), any()))
                 .thenReturn("IBAN is required");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> accountService.saveAccount(inputDto));
+                () -> accountService.saveAccount(createAccountDto));
         assertEquals("IBAN is required", exception.getMessage());
     }
 
     @Test
-    void saveAccount_DuplicateIban_ShouldThrowException() {
-        // Arrange
-        AccountDto inputDto = new AccountDto();
-        inputDto.setCustomerId(1L);
-        inputDto.setIban("DE89370400440532013000");
-        inputDto.setBicSwift("DEUTDEFF");
-
+    void saveAccount_DuplicateIban() {
         when(customerServiceFeign.getCustomerById(1L)).thenReturn(new CustomerDto());
-        when(accountRepository.existsByIban("DE89370400440532013000")).thenReturn(true);
+        when(accountRepository.existsByIban("3434343234323345")).thenReturn(true);
         when(messageSource.getMessage(eq("iban.number.exist"), isNull(), any()))
                 .thenReturn("IBAN already exists");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> accountService.saveAccount(inputDto));
+                () -> accountService.saveAccount(createAccountDto));
         assertEquals("IBAN already exists", exception.getMessage());
     }
 
     @Test
-    void findAllAccounts_WithCustomerIdFilter_ShouldReturnFilteredAccounts() {
-        // Arrange
-        int page = 0;
-        int size = 10;
+    void findAllAccounts_WithFilterCustomerId() {
         Long customerId = 1L;
         Pageable pageable = PageRequest.of(page, size);
 
-        Account account = new Account();
-        account.setAccountId(1L);
-        account.setCustomerId(customerId);
-
         Page<Account> accountPage = new PageImpl<>(List.of(account), pageable, 1);
 
-        // Mock the repository to return our test page
         when(accountRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(accountPage);
 
-        // Act
         Page<AccountDto> result = accountService.findAllAccounts(page, size, customerId, null, null);
 
-        // Assert
         assertEquals(1, result.getTotalElements());
         assertEquals(customerId, result.getContent().get(0).getCustomerId());
         verify(accountRepository).findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
-    void getAccountById_ExistingId_ShouldReturnAccountDto() {
-        // Arrange
+    void getAccountById_ExistingId() {
         Long accountId = 1L;
-        Account account = new Account();
-        account.setAccountId(accountId);
-        account.setIban("DE89370400440532013000");
 
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
-//        when(messageSource.getMessage(anyString(), any(), any()))
-//                .thenReturn("Error message");
 
-        // Act
         AccountDto result = accountService.getAccountById(accountId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(accountId, result.getAccountId());
-        assertEquals("DE89370400440532013000", result.getIban());
+        assertEquals("3434343234323345", result.getIban());
     }
 
     @Test
-    void updateAccount_ValidInput_ShouldReturnUpdatedAccount() {
-        // Arrange
+    void updateAccount_ValidInput() {
         Long accountId = 1L;
         AccountUpdateDto updateDto = new AccountUpdateDto();
-        updateDto.setIban("DE89370400440532013001");
-        updateDto.setBicSwift("DEUTDEFF");
+        updateDto.setIban("7658548493930240");
+        updateDto.setBicSwift("FERHEGS");
 
         Account existingAccount = new Account();
         existingAccount.setAccountId(accountId);
-        existingAccount.setIban("DE89370400440532013000");
+        existingAccount.setIban("3434343234323345");
 
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
         when(accountRepository.save(existingAccount)).thenReturn(existingAccount);
-//        when(messageSource.getMessage(anyString(), any(), any()))
-//                .thenReturn("Error message");
 
-        // Act
         AccountDto result = accountService.updateAccount(accountId, updateDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(accountId, result.getAccountId());
-        assertEquals("DE89370400440532013001", result.getIban());
+        assertEquals("7658548493930240", result.getIban());
     }
 
     @Test
-    void deleteAccount_NoCards_ShouldDeleteSuccessfully() {
-        // Arrange
+    void deleteAccount_NoCards() {
         Long accountId = 1L;
-        Account existingAccount = new Account();
-        existingAccount.setAccountId(accountId);
 
         CardResponse emptyCardResponse = new CardResponse();
         emptyCardResponse.setTotalElements(0L);
 
-        when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(cardServiceFeign.getCardsByAccountCode(accountId, 0, 1))
                 .thenReturn(emptyCardResponse);
-        when(messageSource.getMessage(eq("account.deletion.successful"), any(), any()))
+        when(messageSource.getMessage(eq("account.deletion.successful"), any(), isNull()))
                 .thenReturn("Account deleted successfully");
 
-        // Act
         String result = accountService.deleteAccount(accountId);
 
-        // Assert
         assertEquals("Account deleted successfully", result);
-        verify(accountRepository).delete(existingAccount);
+        verify(accountRepository).delete(account);
     }
 
     @Test
-    void deleteAccount_WithCards_ShouldThrowException() {
-        // Arrange
+    void deleteAccount_WithCards() {
         Long accountId = 1L;
-        Account existingAccount = new Account();
-        existingAccount.setAccountId(accountId);
 
         CardResponse cardResponse = new CardResponse();
         cardResponse.setTotalElements(1L);
 
-        when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(cardServiceFeign.getCardsByAccountCode(accountId, 0, 1))
                 .thenReturn(cardResponse);
         when(messageSource.getMessage(eq("account.deletion.rejected"), any(), any()))
                 .thenReturn("Account has cards and cannot be deleted");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> accountService.deleteAccount(accountId));
         assertEquals("Account has cards and cannot be deleted", exception.getMessage());
@@ -230,20 +200,15 @@ class AccountServiceImplTest {
     }
 
     @Test
-    void validateCustomerExist_CustomerNotFound_ShouldThrowException() {
-        // Arrange
-        AccountDto inputDto = new AccountDto();
-        inputDto.setCustomerId(999L);
-        inputDto.setIban("DE89370400440532013000");
-        inputDto.setBicSwift("DEUTDEFF");
+    void validateCustomerExist_CustomerNotFound() {
+        createAccountDto.setCustomerId(999L);
 
         when(customerServiceFeign.getCustomerById(999L)).thenThrow(new RuntimeException());
         when(messageSource.getMessage(eq("customer.not.found"), any(), any()))
                 .thenReturn("Customer not found");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> accountService.saveAccount(inputDto));
+                () -> accountService.saveAccount(createAccountDto));
         assertEquals("Customer not found", exception.getMessage());
     }
 }

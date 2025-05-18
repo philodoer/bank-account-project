@@ -44,7 +44,8 @@ class CustomerServiceImplTest {
 
     private Customer customer;
     private CustomerDto createDto;
-    private CustomerDto fetchDto;
+    int page = 0;
+    int size = 10;
 
     @BeforeEach
     void setUp() {
@@ -56,8 +57,6 @@ class CustomerServiceImplTest {
         createDto = new CustomerDto();
             createDto.setFirstName("John");
             createDto.setLastName("Doe");
-
-        fetchDto = new CustomerDto();
 
     }
 
@@ -107,8 +106,6 @@ class CustomerServiceImplTest {
 
     @Test
     void getAllCustomers_WithFilters() {
-        int page = 0;
-        int size = 10;
         String name = "John";
         LocalDate startDate = LocalDate.of(2025, 5, 1);
         LocalDate endDate = LocalDate.of(2025, 5, 31);
@@ -130,9 +127,6 @@ class CustomerServiceImplTest {
 
     @Test
     void getAllCustomers_WithoutFilters() {
-        int page = 0;
-        int size = 10;
-
         Pageable pageable = PageRequest.of(page, size);
         Page<Customer> customerPage = new PageImpl<>(Collections.emptyList());
 

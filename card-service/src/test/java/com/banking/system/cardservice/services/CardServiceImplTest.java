@@ -50,111 +50,87 @@ class CardServiceImplTest {
     @Mock
     private CardFormatConfig cardFormatConfig;
 
+    private CardDto createCardDto;
+    private CardDto fetchCardDto;
+    private Card savedCard;
+    int page = 0;
+    int size = 10;
+
     @BeforeEach
     void setUp() {
+        createCardDto = new CardDto();
+            createCardDto.setAccountId(1L);
+            createCardDto.setPan("4646557784849383");
+            createCardDto.setCvv("123");
+            createCardDto.setTypeOfCard(CardType.PHYSICAL);
+
+        savedCard = new Card();
+            savedCard.setCardId(1L);
+            savedCard.setPan("4646557784849383");
+            savedCard.setCardType(CardType.PHYSICAL);
+
         lenient().when(cardFormatConfig.getPanFormat()).thenReturn("\\d{16}");
         lenient().when(cardFormatConfig.getCvvFormat()).thenReturn("\\d{3}");
     }
 
-
     @Test
-    void saveCard_ValidInput_ShouldReturnCardDto() {
-        // Arrange
-        CardDto inputDto = new CardDto();
-        inputDto.setAccountId(1L);
-        inputDto.setPan("4111111111111111");
-        inputDto.setCvv("123");
-        inputDto.setTypeOfCard(CardType.PHYSICAL);
-
-        Card savedCard = new Card();
-        savedCard.setCardId(1L);
-        savedCard.setPan("4111111111111111");
-
+    void saveCard_ValidInput() {
         when(accountServiceFeign.getAccountById(1L)).thenReturn(new AccountDto());
         when(cardRepository.existsByAccountIdAndCardType(anyLong(), any())).thenReturn(false);
         when(cardRepository.existsByPan(anyString())).thenReturn(false);
         when(cardRepository.save(any(Card.class))).thenReturn(savedCard);
-//        when(messageSource.getMessage(anyString(), any(), any())).thenReturn("Error message");
 
-        // Act
-        CardDto result = cardService.saveCard(inputDto);
+        CardDto result = cardService.saveCard(createCardDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1L, result.getCardId());
         verify(cardRepository).save(any(Card.class));
     }
 
     @Test
-    void saveCard_InvalidPan_ShouldThrowException() {
-        // Arrange
-        CardDto inputDto = new CardDto();
-        inputDto.setAccountId(1L);
-        inputDto.setPan("invalid");
-        inputDto.setCvv("123");
-        inputDto.setTypeOfCard(CardType.PHYSICAL);
+    void saveCard_InvalidPan() {
+        createCardDto.setPan("invalid");
 
         when(messageSource.getMessage(eq("invalid.card.panformat"), isNull(), any()))
                 .thenReturn("Invalid PAN format");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> cardService.saveCard(inputDto));
+                () -> cardService.saveCard(createCardDto));
         assertEquals("Invalid PAN format", exception.getMessage());
     }
 
     @Test
-    void saveCard_AccountDoesNotExist_ShouldThrowException() {
-        // Arrange
-        CardDto inputDto = new CardDto();
-        inputDto.setAccountId(999L);
-        inputDto.setPan("4111111111111111");
-        inputDto.setCvv("123");
-        inputDto.setTypeOfCard(CardType.PHYSICAL);
+    void saveCard_AccountDoesNotExist() {
+        createCardDto.setAccountId(999L);
 
         when(accountServiceFeign.getAccountById(999L)).thenThrow(new RuntimeException());
         when(messageSource.getMessage(eq("account.not.found"), any(), any()))
                 .thenReturn("Account not found");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> cardService.saveCard(inputDto));
+                () -> cardService.saveCard(createCardDto));
         assertEquals("Account not found", exception.getMessage());
     }
 
     @Test
-    void getAllCards_WithFilters_ShouldReturnPage() {
-        // Arrange
-        int page = 0;
-        int size = 10;
+    void getAllCards_WithFilters() {
         Pageable pageable = PageRequest.of(page, size);
 
-        Card card = new Card();
-        card.setCardId(1L);
-        card.setCardType(CardType.PHYSICAL);
+        Page<Card> cardPage = new PageImpl<>(List.of(savedCard), pageable, 1);
 
-        // Create a real Page implementation
-        Page<Card> cardPage = new PageImpl<>(List.of(card), pageable, 1);
-
-        // Mock the repository to return our real Page
         when(cardRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(cardPage);
 
-        // Act
         Page<CardDto> result = cardService.getAllCards(
                 page, size, 1L, "My Card", "4111", CardType.PHYSICAL, true);
 
-        // Assert
         assertEquals(1, result.getTotalElements());
         assertEquals(CardType.PHYSICAL, result.getContent().get(0).getTypeOfCard());
         verify(cardRepository).findAll(any(Specification.class), eq(pageable));
     }
 
     @Test
-    void getAllCards_EmptyResult_ShouldReturnEmptyPage() {
-        // Arrange
-        int page = 0;
-        int size = 10;
+    void getAllCards_EmptyResult() {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Card> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
@@ -170,117 +146,84 @@ class CardServiceImplTest {
     }
 
     @Test
-    void getCardById_ExistingId_ShouldReturnCardDto() {
-        // Arrange
+    void getCardById_ExistingId() {
         Long cardId = 1L;
-        Card card = new Card();
-        card.setCardId(cardId);
-        card.setPan("4111111111111111");
 
-        when(cardRepository.findById(cardId)).thenReturn(Optional.of(card));
-//        when(messageSource.getMessage(anyString(), any(), any()))
-//                .thenReturn("Error message");
+        when(cardRepository.findById(cardId)).thenReturn(Optional.of(savedCard));
 
-        // Act
         CardDto result = cardService.getCardById(cardId, false);
 
-        // Assert
         assertNotNull(result);
         assertEquals(cardId, result.getCardId());
         verify(cardRepository).findById(cardId);
     }
 
     @Test
-    void getCardById_NonExistingId_ShouldThrowException() {
-        // Arrange
+    void getCardById_NonExistingId() {
         Long cardId = 999L;
 
         when(cardRepository.findById(cardId)).thenReturn(Optional.empty());
         when(messageSource.getMessage(eq("card.not.found"), any(), any()))
                 .thenReturn("Card not found");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> cardService.getCardById(cardId, false));
         assertEquals("Card not found", exception.getMessage());
     }
 
     @Test
-    void updateCardDetails_ValidInput_ShouldReturnUpdatedCard() {
-        // Arrange
+    void updateCardDetails_ValidInput() {
         Long cardId = 1L;
         UpdateCardDto updateDto = new UpdateCardDto();
-        updateDto.setCardAlias("Updated Alias");
+        updateDto.setCardAlias("Learning card");
 
-        Card existingCard = new Card();
-        existingCard.setCardId(cardId);
+        when(cardRepository.findById(cardId)).thenReturn(Optional.of(savedCard));
+        when(cardRepository.save(savedCard)).thenReturn(savedCard);
 
-        when(cardRepository.findById(cardId)).thenReturn(Optional.of(existingCard));
-        when(cardRepository.save(existingCard)).thenReturn(existingCard);
-//        when(messageSource.getMessage(anyString(), any(), any()))
-//                .thenReturn("Error message");
-
-        // Act
         CardDto result = cardService.updateCardDetails(cardId, updateDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(cardId, result.getCardId());
         verify(cardRepository).findById(cardId);
-        verify(cardRepository).save(existingCard);
+        verify(cardRepository).save(savedCard);
     }
 
     @Test
-    void deleteCard_ExistingId_ShouldReturnSuccessMessage() {
-        // Arrange
+    void deleteCard_ExistingId() {
         Long cardId = 1L;
-        Card existingCard = new Card();
-        existingCard.setCardId(cardId);
 
-        when(cardRepository.findById(cardId)).thenReturn(Optional.of(existingCard));
+        when(cardRepository.findById(cardId)).thenReturn(Optional.of(savedCard));
         when(messageSource.getMessage(eq("card.deletion.successful"), any(), any()))
                 .thenReturn("Card deleted successfully");
 
-        // Act
         String result = cardService.deleteCard(cardId);
 
-        // Assert
         assertEquals("Card deleted successfully", result);
-        verify(cardRepository).delete(existingCard);
+        verify(cardRepository).delete(savedCard);
     }
 
     @Test
-    void validateCardDetails_InvalidCVV_ShouldThrowException() {
-        CardDto inputDto = new CardDto();
-        inputDto.setCvv("12"); // Invalid CVV
-        inputDto.setPan("4111111111111111");
-        inputDto.setTypeOfCard(CardType.PHYSICAL);
+    void validateCardDetails_InvalidCVV() {
+        createCardDto.setCvv("12"); // set Invalid CVV
 
         lenient().when(messageSource.getMessage("invalid.card.cvvformat", null, null))
-                .thenReturn("Invalid CVV format");
+                .thenReturn("Invalid cvv format provided");
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> cardService.validateCardDetails(inputDto));
-        assertEquals("Invalid CVV format", exception.getMessage());
+                () -> cardService.validateCardDetails(createCardDto));
+        assertEquals("Invalid cvv format provided", exception.getMessage());
     }
 
     @Test
     void validateDataUniqueness_DuplicatePan_ShouldThrowException() {
-        // Arrange
-        CardDto inputDto = new CardDto();
-        inputDto.setAccountId(1L);
-        inputDto.setPan("4111111111111111");
-        inputDto.setCvv("123");
-        inputDto.setTypeOfCard(CardType.PHYSICAL);
-
         when(accountServiceFeign.getAccountById(1L)).thenReturn(new AccountDto());
-        when(cardRepository.existsByPan("4111111111111111")).thenReturn(true);
+        when(cardRepository.existsByPan("4646557784849383")).thenReturn(true);
         when(messageSource.getMessage(eq("card.pan.exist"), any(), any()))
                 .thenReturn("PAN already exists");
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> cardService.saveCard(inputDto));
+                () -> cardService.saveCard(createCardDto));
         assertEquals("PAN already exists", exception.getMessage());
     }
 }

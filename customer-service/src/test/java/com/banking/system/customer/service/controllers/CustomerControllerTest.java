@@ -30,6 +30,8 @@ class CustomerControllerTest {
 
     private CustomerDto createDto;
     private CustomerDto fetchDto;
+    int page = 0;
+    int size = 10;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +49,6 @@ class CustomerControllerTest {
 
     @Test
     void saveCustomer() {
-
         when(customerService.saveCustomer(createDto)).thenReturn(fetchDto);
 
         ResponseEntity<CustomerDto> response = customerController.save(createDto);
@@ -59,8 +60,6 @@ class CustomerControllerTest {
 
     @Test
     void findAllCustomers_NoFilters() {
-        int page = 0;
-        int size = 10;
         String name = "John";
         LocalDate startDate = LocalDate.of(2025, 5, 1);
         LocalDate endDate = LocalDate.of(2025, 5, 31);
@@ -79,9 +78,6 @@ class CustomerControllerTest {
 
     @Test
     void findAllCustomers_WithoutFilters() {
-        int page = 0;
-        int size = 10;
-
         Page<CustomerDto> expectedPage = new PageImpl<>(Collections.emptyList());
         when(customerService.getAllCustomers(page, size, null, null, null))
                 .thenReturn(expectedPage);
