@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: card-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dtb
+    username: postgres
+    password: ta
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  messages:
+    basename: messages
+server:
+  port: 1502
+
+card:
+  validation:
+    pan-format: "\\d{16}"
+    cvv-format: "\\d{3}"

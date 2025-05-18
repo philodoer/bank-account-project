@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: account-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dtb
+    username: postgres
+    password: ta
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  messages:
+    basename: messages
+server:
+  port: 1501
