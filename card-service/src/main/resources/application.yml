@@ -9,13 +9,14 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: update #to be removed on production. should be replaced with liquibase/flyway migration service - prefer liquibase
     show-sql: true
   messages:
     basename: messages
 server:
   port: 1502
 
+# make it easier to control dynamic data.
 card:
   validation:
     pan-format: "\\d{16}"

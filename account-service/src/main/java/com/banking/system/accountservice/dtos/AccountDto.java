@@ -16,9 +16,7 @@ public class AccountDto {
             example = "1001",accessMode = Schema.AccessMode.READ_ONLY)
     private Long accountId;
 
-    @Schema(
-            description = "International Bank Account Number - globally unique",
-            example = "23442343353445764565")
+    @Schema(description = "International Bank Account Number - globally unique",example = "23442343353445764565")
     private String iban;
 
     @Schema(description = "Bank Identifier Code (BIC/SWIFT)",example = "FHEGJS")
@@ -28,7 +26,7 @@ public class AccountDto {
     private Long customerId;
 
     /**
-     * Pick timestamp when the data is being persisted. Cannot be edited
+     * Pick timestamp when the data is being persisted. Cannot be edited.
      */
     @Schema(description = "Date and time when the account was created",example = "2024-05-16T12:30:00",
             accessMode = Schema.AccessMode.READ_ONLY)

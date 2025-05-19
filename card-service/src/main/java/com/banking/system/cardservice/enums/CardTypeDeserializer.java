@@ -6,6 +6,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import java.io.IOException;
 
+/**
+ * Serialize card type info before the dto is validated
+ *
+ */
 public class CardTypeDeserializer extends JsonDeserializer<CardType> {
 
     @Override

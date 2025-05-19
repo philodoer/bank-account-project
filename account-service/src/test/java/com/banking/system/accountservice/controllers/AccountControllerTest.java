@@ -22,6 +22,10 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit test for Account controller.
+ */
+
 @ExtendWith(MockitoExtension.class)
 class AccountControllerTest {
 
@@ -37,6 +41,9 @@ class AccountControllerTest {
     int page = 0;
     int size = 10;
 
+    /**
+     * Data presented at every test done.
+     */
     @BeforeEach
     void setUp() {
         createAccountDto = new AccountDto();
@@ -49,6 +56,10 @@ class AccountControllerTest {
             fetchAccountDto.setIban("3434343234323345");
     }
 
+    /**
+     * Test save endpoint with a valid input.
+     * Expected feedback is a dto of saved data
+     */
     @Test
     void saveAccount_ValidInput() {
 
@@ -61,6 +72,10 @@ class AccountControllerTest {
         verify(accountService).saveAccount(createAccountDto);
     }
 
+    /**
+     * Test fetch all endpoint with no filters.
+     * Expected feedback paginated list of all data - no filter applied
+     */
     @Test
     void findAllAccounts_NoFilters() {
         Page<AccountDto> expectedPage = new PageImpl<>(List.of(createAccountDto));
@@ -74,6 +89,10 @@ class AccountControllerTest {
         assertEquals(createAccountDto, response.getBody().getContent().get(0));
     }
 
+    /**
+     * Test fetch all endpoint with  filters.
+     * Expected feedback paginated list of filtered data
+     */
     @Test
     void findAllAccounts_WithFilters() {
         Long customerId = 1L;
@@ -98,6 +117,10 @@ class AccountControllerTest {
         assertEquals(iban, response.getBody().getContent().get(0).getIban());
     }
 
+    /**
+     * Test fetch account by id.
+     * Expected feedback - a single account record with id passed
+     */
     @Test
     void getAccountById_ExistingId() {
         Long accountId = 1L;
@@ -111,6 +134,10 @@ class AccountControllerTest {
         verify(accountService).getAccountById(accountId);
     }
 
+    /**
+     * Test update account.
+     * Expected feedback - a account dto with the updated details
+     */
     @Test
     void updateAccount_ValidInput() {
         Long accountId = 1L;
@@ -131,6 +158,10 @@ class AccountControllerTest {
         verify(accountService).updateAccount(accountId, toUpdateDto);
     }
 
+    /**
+     * Test Delete endpoint.
+     * Expected success message when account is deleted
+     */
     @Test
     void deleteAccount_ExistingId() {
         Long accountId = 1L;

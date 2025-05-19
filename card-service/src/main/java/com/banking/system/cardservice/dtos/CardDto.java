@@ -21,17 +21,20 @@ public class CardDto {
     private Long cardId;
 
     @NotNull(message = "{account.detail.missing}")
-    @Schema(description = "Account Id, Link an account to a card.")
+    @Schema(description = "Account Id, Link an account to a card. The id must reference an actual account in the system")
     private Long accountId;
 
     @NotNull(message = "{invalid.card.type}")
     @JsonDeserialize(using = CardTypeDeserializer.class)
+    @Schema(description = "Type of card to be saved. Either VIRTUAL or PHYSICAL")
     private CardType typeOfCard;
 
     @NotBlank(message = "{pan.mandatory}")
+    @Schema(description = "Primary Account Number - identifies the account with key details about the account. Format to be specified on the property file")
     private String pan;
 
     @NotBlank(message = "{cvv.mandatory}")
+    @Schema(description = "Card Verification Value. Format to be specified on the property file")
     private String cvv;
 
     @Schema(description = "An optional name given to the card for easy differentiation, user-defined")

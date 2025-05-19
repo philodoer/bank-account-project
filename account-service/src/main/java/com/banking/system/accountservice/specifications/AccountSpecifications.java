@@ -7,6 +7,10 @@ import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Account specification to create a query filter to be used on fetching accounts
+ * support iban and customer id
+ */
 public class AccountSpecifications {
 
     public static Specification<Account> accountWithFilter(Long customerId, String iban) {

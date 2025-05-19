@@ -27,6 +27,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto saveAccount(AccountDto dto){
+
+        /**
+         * check if customer exist and if the data given are valid. e.g. Iban is unique
+         */
         validateCustomerExist(dto);
         validateAccountDto(dto);
         Account account = AccountMapper.toEntity(dto);
@@ -78,6 +82,11 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         messageSource.getMessage("account.not.found", new Object[]{accountId},null)));
 
+        /**
+         * Confirm if the account has a card registered
+         * Do not delete any account with a card. i.e. total element is greater than 0
+         *
+         */
         CardResponse cardResponse = cardServiceFeign.getCardsByAccountCode(
                 accountId,0,1
         );

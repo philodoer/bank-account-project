@@ -24,7 +24,7 @@ public class CardController {
     @Operation(summary = "Create a new card. The account id must reference and existing account" +
             "Card Type has to be either VIRTUAL or PHYSICAL. CVV and PAN are mandatory")
     public ResponseEntity<CardDto> save(
-            @Parameter(description = "card details",required = true)
+            @Parameter(description = "card details dto",required = true)
             @Valid @RequestBody CardDto dto
     ) {
         CardDto returnedDto = cardService.saveCard(dto);
@@ -33,7 +33,8 @@ public class CardController {
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
-    @Operation(summary = "fetch all cards")
+    @Operation(summary = "fetch all cards based on the filter details passed. page and size will be defaulted to 0 and 10 respectively." +
+            "showSensitiveData is used to hide/show iban and cvv details")
     public ResponseEntity<Page<CardDto>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -68,7 +69,7 @@ public class CardController {
 
     @DeleteMapping("/{cardId}")
     @ResponseStatus(value = HttpStatus.OK)
-    @Operation(summary = "Delete card details")
+    @Operation(summary = "Delete card details for the id given")
     public ResponseEntity<String> delete(
             @PathVariable Long cardId){
         return new ResponseEntity<>(cardService.deleteCard(cardId), HttpStatus.OK);

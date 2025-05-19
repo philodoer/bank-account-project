@@ -42,6 +42,9 @@ public class CardMapper {
         card.setTypeOfCard(entity.getCardType());
         card.setCardAlias(entity.getCardAlias());
 
+        /**
+         * if showSensitiveData is false - PAN and CVV will be masked
+         */
         if (!show) {
             card.setPan(MaskSensitiveData.maskPan(entity.getPan()));
             card.setCvv(MaskSensitiveData.maskCvv(entity.getCvv()));

@@ -1,5 +1,9 @@
 package com.banking.system.cardservice.utils;
 
+
+/**
+ * A util class to hide PAN and CVV data
+ */
 public class MaskSensitiveData {
 
     public static String maskPan(String pan) {

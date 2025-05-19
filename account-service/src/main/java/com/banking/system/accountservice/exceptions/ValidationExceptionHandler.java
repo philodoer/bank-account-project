@@ -10,6 +10,9 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ValidationExceptionHandler {
+    /**
+     * @return structured error response for all @valid errors
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -18,6 +21,9 @@ public class ValidationExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    /**
+     * @return structured error response for all IllegalArgumentException errors
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
         Map<String, String> error = new HashMap<>();

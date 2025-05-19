@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "card.validation")
 @Getter
 @Setter
+/**
+ * A configuration to fetch card validation details from properties
+ * Accessible globally
+ */
 public class CardFormatConfig {
     private String panFormat;
     private String cvvFormat;
