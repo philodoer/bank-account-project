@@ -1,4 +1,4 @@
-Project Overview.
+Project Overview.  
 This is a bank account management project. It has three micro-services
 1. Customer Service - managing customer CRUD operations. run on port 1500
 2. Account Service - Manage account CRUD operations - linked to customer through customer Id. Run on port 1501
