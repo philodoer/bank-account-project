@@ -18,31 +18,3 @@ Other key tools - Hibernate, Jpa and FeignClient.
 3. Gateway and Eureka service - for interservice communication, centralized authentication and service registration.  
 4. Full internalization, documentation, unit testing.  
 5. Integration testing.  
-# Bank Account Management Project
-
-This is a bank account management project composed of three microservices:
-
-1. **Customer Service** – Manages customer CRUD operations.
-2. **Account Service** – Manages account CRUD operations, linked to customers via `customerId`.
-3. **Card Service** – Manages card CRUD operations, linked to accounts via `accountId`.
-
-## Architecture
-
-- **Framework**: Spring Boot  
-- **Build Tool**: Maven  
-- **Java Version**: Java 21  
-- **Unit Testing**: JUnit 5  
-- **Database**: PostgreSQL  
-- **Pagination & Filtering**: JpaSpecification  
-- **Other Tools**: Hibernate, JPA, FeignClient  
-
-## Future Improvements
-
-1. Add Role-Based Access Control (RBAC) for authorization and authentication.
-2. Introduce a database migration service for scalable growth.
-3. Integrate Spring Cloud Gateway and Eureka for:
-   - Centralized authentication
-   - Service registration
-   - Improved interservice communication
-4. Full internationalization, documentation, and unit testing.
-5. Add integration testing.
